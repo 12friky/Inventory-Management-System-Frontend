@@ -20,21 +20,32 @@ function Register() {
   };
 
   // Register User
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
   const registerUser = () => {
-    fetch("http://localhost:4000/api/register", {
+    fetch(`${API_BASE_URL}/api/register`, {
       method: "POST",
       headers: {
-        "Content-type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(form),
     })
-      .then((result) => {
-        alert("Successfully Registered, Now Login with your details");
-        navigate('/login')
-        
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Registration failed. Please try again.");
+        }
+        return response.json();
       })
-      .catch((err) => console.log(err));
+      .then((data) => {
+        alert("Successfully Registered, Now Login with your details");
+        navigate('/login');
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+        alert("Registration failed. Please check your details and try again.");
+      });
   };
+  
   // ------------------
 
   // Uploading image to cloudinary

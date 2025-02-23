@@ -17,46 +17,64 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
   const authCheck = () => {
     setTimeout(() => {
-      fetch("http://localhost:4000/api/login")
-        .then((response) => response.json())
+      fetch(`${API_BASE_URL}/api/login`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Authentication failed.");
+          }
+          return response.json();
+        })
         .then((data) => {
-          alert("Successfully Login");
+          alert("Successfully Logged In");
           localStorage.setItem("user", JSON.stringify(data));
+  
           authContext.signin(data._id, () => {
             navigate("/");
           });
         })
         .catch((err) => {
-          alert("Wrong credentials, Try again")
-          console.log(err);
+          alert("Wrong credentials, Try again");
+          console.error(err);
         });
     }, 3000);
   };
-
+  
   const loginUser = (e) => {
+    e.preventDefault(); // Prevent form from submitting if inside a form
+  
     // Cannot send empty data
-    if (form.email === "" || form.password === "") {
-      alert("To login user, enter details to proceed...");
-    } else {
-      fetch("http://localhost:4000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(form),
-      })
-        .then((result) => {
-          console.log("User login", result);
-        })
-        .catch((error) => {
-          console.log("Something went wrong ", error);
-        });
+    if (!form.email || !form.password) {
+      alert("To login, enter your email and password.");
+      return;
     }
-    authCheck();
+  
+    fetch(`${API_BASE_URL}/api/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Invalid credentials.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("User logged in:", data);
+        authCheck();
+      })
+      .catch((error) => {
+        alert("Something went wrong. Please try again.");
+        console.error("Login error:", error);
+      });
   };
-
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -80,11 +98,11 @@ function Login() {
               Signin to your account
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Or
+            
               <span
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
-                start your 14-day free trial
+              
               </span>
             </p>
           </div>
